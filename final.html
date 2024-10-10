@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Problemática</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .score-input {
+            width: 60px;
+            padding: 5px;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .results-section {
+            margin-top: 20px;
+        }
+        .result {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+        .result h3 {
+            margin-top: 0;
+        }
+        #pareto-chart, #fishbone-canvas {
+            width: 100%;
+            height: 300px;
+        }
+        #fishbone-canvas {
+            border: 1px solid #000;
+            height: 400px;
+        }
+        .hat-result {
+            margin-bottom: 10px;
+        }
+        .contact-info {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: flex;
+            align-items: center;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Análisis de Problemática</h1>
+        <div id="input-section">
+            <label for="problematic">Ingrese una problemática:</label>
+            <textarea id="problematic" rows="4" cols="50" placeholder="Describe la problemática que deseas analizar..."></textarea>
+            <button onclick="generateQuestions()">Generar Preguntas</button>
+        </div>
+        <div id="questions-section" class="hidden">
+            <h2>Responde y evalúa las siguientes preguntas:</h2>
+            <form id="questions-form"></form>
+            <button onclick="submitAnswers()">Enviar Respuestas</button>
+        </div>
+        <div id="result-section" class="hidden results-section">
+            <h2>Resultados</h2>
+            <div id="foda-result" class="result"></div>
+            <div id="catwda-result" class="result"></div>
+            <div id="pareto-result" class="result">
+                <h3>Diagrama de Pareto</h3>
+                <canvas id="pareto-chart"></canvas>
+            </div>
+            <div id="fishbone-result" class="result">
+                <h3>Diagrama de Pescado</h3>
+                <canvas id="fishbone-canvas"></canvas>
+            </div>
+            <div id="hats-result" class="result hidden">
+                <h3>Clasificación de Sombreros</h3>
+                <div id="yellow-hat" class="hat-result"></div>
+                <div id="red-hat" class="hat-result"></div>
+                <div id="black-hat" class="hat-result"></div>
+                <div id="white-hat" class="hat-result"></div>
+                <div id="green-hat" class="hat-result"></div>
+                <div id="blue-hat" class="hat-result"></div>
+            </div>
+            <div class="contact-info">
+                <div>
+                    <p><strong>Monica Jazmin Rosas Labra</strong></p>
+                    <p><strong>Sandra Paola Fermin Martinez</strong></p>
+                    <p><strong>Bruno Adolfo Sotelo Leon</strong></p>
+                    <p>Carrera: Licenciatura en Administración de las TI</p>
+                </div>
+            </div>
+            <button onclick="window.print()">Imprimir Resultados</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function generateQuestions() {
+            const problematic = document.getElementById('problematic').value;
+            if (!problematic) {
+                alert('Por favor, ingrese una problemática.');
+                return;
+            }
+
+            const questions = [
+                { id: 'q1', text: '¿Qué aspectos positivos podrían surgir de esta situación?' },
+                { id: 'q2', text: '¿Qué desafíos podrías enfrentar si no abordas esta problemática?' },
+                { id: 'q3', text: '¿Qué recursos tienes a tu disposición para solucionar esta situación?' },
+                { id: 'q4', text: '¿Qué obstáculos podrían limitar tu capacidad para resolver este problema?' },
+                { id: 'q5', text: '¿Qué alternativas podrían mejorar la situación actual?' },
+                { id: 'q6', text: '¿Qué tendencias externas podrían afectar tu capacidad para resolver esta problemática?' },
+                { id: 'q7', text: '¿Cómo podrías maximizar las oportunidades que se presentan?' },
+                { id: 'q8', text: '¿Qué errores comunes podrías evitar para mejorar tu solución?' },
+                { id: 'q9', text: '¿Qué impacto tendría la resolución de esta problemática en tu entorno?' },
+                { id: 'q10', text: '¿Qué aspectos de la problemática podrían necesitar más atención?' },
+            ];
+
+            const form = document.getElementById('questions-form');
+            form.innerHTML = ''; // Clear previous questions
+
+            questions.forEach(q => {
+                const div = document.createElement('div');
+                div.className = 'question';
+                div.innerHTML = `
+                    <label for="${q.id}">${q.text}</label><br>
+                    <textarea id="${q.id}" rows="3" cols="50"></textarea><br>
+                    <label for="${q.id}-score">Puntuación (0-15):</label>
+                    <input type="number" id="${q.id}-score" class="score-input" min="0" max="15">
+                `;
+                form.appendChild(div);
+            });
+
+            document.getElementById('input-section').classList.add('hidden');
+            document.getElementById('questions-section').classList.remove('hidden');
+        }
+
+        function submitAnswers() {
+            const answers = {};
+            const scores = {};
+            const questions = document.querySelectorAll('.question textarea');
+            const scoreInputs = document.querySelectorAll('.question .score-input');
+            
+            let totalScore = 0;
+
+            questions.forEach(textarea => {
+                answers[textarea.id] = textarea.value;
+            });
+
+            scoreInputs.forEach(input => {
+                const score = parseInt(input.value, 10);
+                if (score < 0 || score > 15 || isNaN(score)) {
+                    alert('La puntuación debe estar entre 0 y 15.');
+                    return;
+                }
+                scores[input.id.replace('-score', '')] = score;
+                totalScore += score;
+            });
+
+            if (totalScore > 150) { // Asumiendo que 10 preguntas x 15 puntos cada una = 150 puntos
+                alert('La puntuación total excede el límite permitido.');
+                return;
+            }
+
+            // Clasificación de sombreros
+            const hatResults = {
+                yellow: answers.q1,
+                red: answers.q2,
+                black: answers.q4,
+                white: answers.q3,
+                green: answers.q5,
+                blue: answers.q6
+            };
+
+            document.getElementById('yellow-hat').innerHTML = `<h4>Sombrero Amarillo (Lo Bueno)</h4><p>${hatResults.yellow}</p>`;
+            document.getElementById('red-hat').innerHTML = `<h4>Sombrero Rojo (Lo Que Sientes)</h4><p>${hatResults.red}</p>`;
+            document.getElementById('black-hat').innerHTML = `<h4>Sombrero Negro (Diferencias)</h4><p>${hatResults.black}</p>`;
+            document.getElementById('white-hat').innerHTML = `<h4>Sombrero Blanco (Cifras)</h4><p>${hatResults.white}</p>`;
+            document.getElementById('green-hat').innerHTML = `<h4>Sombrero Verde (Oportunidades)</h4><p>${hatResults.green}</p>`;
+            document.getElementById('blue-hat').innerHTML = `<h4>Sombrero Azul (Evaluación)</h4><p>${hatResults.blue}</p>`;
+
+            document.getElementById('hats-result').classList.remove('hidden');
+
+            // FODA y CATWDA análisis
+            document.getElementById('foda-result').innerHTML = `<h3>FODA</h3><p><strong>Fortalezas:</strong> ${answers.q3}</p><p><strong>Oportunidades:</strong> ${answers.q1}</p><p><strong>Debilidades:</strong> ${answers.q4}</p><p><strong>Amenazas:</strong> ${answers.q6}</p>`;
+            document.getElementById('catwda-result').innerHTML = `<h3>CATWDA</h3><p><strong>Clientes:</strong> ${answers.q9}</p><p><strong>Actores:</strong> ${answers.q7}</p><p><strong>Transformaciones:</strong> ${answers.q10}</p><p><strong>Mundo:</strong> ${answers.q8}</p><p><strong>Dueño:</strong> ${answers.q2}</p><p><strong>Limitaciones:</strong> ${answers.q5}</p>`;
+
+            // Generar el diagrama de Pareto
+            generateParetoChart(scores);
+            
+            // Dibujar el diagrama de Pescado
+            drawFishboneDiagram(answers);
+            
+            document.getElementById('questions-section').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+        }
+
+        function generateParetoChart(scores) {
+            const ctx = document.getElementById('pareto-chart').getContext('2d');
+            const sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+
+            const labels = sortedScores.map(item => item[0]);
+            const data = sortedScores.map(item => item[1]);
+            const total = data.reduce((sum, value) => sum + value, 0);
+            const cumulativePercentage = data.map((value, index) => {
+                const cumulativeValue = data.slice(0, index + 1).reduce((sum, val) => sum + val, 0);
+                return (cumulativeValue / total) * 100;
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Puntuación',
+                        data: data,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Puntuación'
+                            }
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: {
+                                line: {
+                                    type: 'line',
+                                    yMin: 80,
+                                    yMax: 80,
+                                    borderColor: 'red',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6]
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawFishboneDiagram(answers) {
+            const canvas = document.getElementById('fishbone-canvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Limpiar el lienzo
+            ctx.clearRect(0, 0, width, height);
+
+            // Línea central
+            ctx.beginPath();
+            ctx.moveTo(50, height / 2);
+            ctx.lineTo(width - 50, height / 2);
+            ctx.stroke();
+
+            // Obtener respuestas y dividir en 5 arriba y 5 abajo
+            const categories = Object.values(answers);
+            const numCategories = categories.length;
+            const upperCategories = categories.slice(0, 5);
+            const lowerCategories = categories.slice(5, 10);
+            const spacing = (width - 100) / Math.max(upperCategories.length, lowerCategories.length);
+
+            // Dibujar "espinas" (líneas inclinadas) arriba
+            upperCategories.forEach((category, index) => {
+                const x = 50 + spacing * (index + 0.5);
+                const yTop = height / 2 - 40; // Reducir la altura de las espinas superiores
+                const yBottom = height / 2 - 20;
+
+                // Línea superior
+                ctx.beginPath();
+                ctx.moveTo(x, height / 2);
+                ctx.lineTo(x, yTop);
+                ctx.stroke();
+
+                // Texto
+                ctx.font = '8px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(category, x, yTop - 10);
+            });
+
+            // Dibujar "espinas" (líneas inclinadas) abajo
+            lowerCategories.forEach((category, index) => {
+                const x = 50 + spacing * (index + 0.5);
+                const yTop = height / 2 + 20;
+                const yBottom = height / 2 + 40; // Reducir la altura de las espinas inferiores
+
+                // Línea inferior
+                ctx.beginPath();
+                ctx.moveTo(x, height / 2);
+                ctx.lineTo(x, yBottom);
+                ctx.stroke();
+
+                // Texto
+                ctx.font = '8px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(category, x, yBottom + 20);
+            });
+        }
+
+        
+    </script>
+</body>
+</html>
